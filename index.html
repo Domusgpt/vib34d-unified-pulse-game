@@ -311,103 +311,233 @@
         let frameCount = 0;
         let lastFrameTime = performance.now();
 
-        // Import and initialize the system
+        // Bulletproof initialization system
         async function initializeSystem() {
+            let initializationComplete = false;
+            let statusElement = null;
+            let loadingElement = null;
+
+            // Get DOM elements safely
             try {
-                console.log('🚀 Initializing VIB34D Holographic System...');
+                statusElement = document.getElementById('systemStatus');
+                loadingElement = document.getElementById('loadingOverlay');
+            } catch (e) {
+                console.error('DOM elements not found:', e);
+            }
 
-                // Import modules
-                const modules = await Promise.all([
-                    import('./src/core/CorrectedVIB34DIntegration.js'),
-                    import('./src/core/UnifiedAudioGameDirector.js'),
-                    import('./src/audio/AudioDrivenLevelGenerator.js'),
-                    import('./src/particles/AudioReactiveParticleSystem.js'),
-                    import('./src/visual/MathematicallyCoherentVisualSystem.js')
-                ]);
+            // Force hide loading overlay after 3 seconds
+            const forceTimeout = setTimeout(() => {
+                if (!initializationComplete) {
+                    console.warn('⚠️ Force removing loading overlay after timeout');
+                    if (loadingElement) loadingElement.classList.add('hidden');
+                    if (statusElement) statusElement.textContent = 'Timeout - Starting Basic Mode';
+                    startBasicMode();
+                }
+            }, 3000);
 
-                // Create audio context
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                const audioContext = new AudioContext();
+            try {
+                console.log('🚀 Starting VIB34D System...');
+                if (statusElement) statusElement.textContent = 'Loading modules...';
 
-                // Initialize audio director
-                console.log('📡 Creating UnifiedAudioGameDirector...');
-                audioDirector = new modules[1].UnifiedAudioGameDirector(audioContext);
-                console.log('📡 Audio director created, methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(audioDirector)));
+                // Try to load only the critical modules one by one
+                let CorrectedVIB34DIntegration = null;
+                let UnifiedAudioGameDirector = null;
 
-                // Wait for audio director to fully initialize
-                console.log('⏳ Waiting for audio director initialization...');
-                await audioDirector.initPromise;
-                console.log('✅ Audio director initialized');
+                try {
+                    const module1 = await import('./src/core/CorrectedVIB34DIntegration.js');
+                    CorrectedVIB34DIntegration = module1.CorrectedVIB34DIntegration;
+                    console.log('✅ VIB34D module loaded');
+                } catch (e) {
+                    console.error('❌ Failed to load VIB34D module:', e);
+                }
 
-                // Initialize VIB34D integration
-                console.log('🎯 Creating CorrectedVIB34DIntegration...');
-                vib34dSystem = new modules[0].CorrectedVIB34DIntegration(audioDirector);
-                console.log('✅ VIB34D integration created');
+                try {
+                    const module2 = await import('./src/core/UnifiedAudioGameDirector.js');
+                    UnifiedAudioGameDirector = module2.UnifiedAudioGameDirector;
+                    console.log('✅ Audio module loaded');
+                } catch (e) {
+                    console.error('❌ Failed to load Audio module:', e);
+                }
 
-                // Hide loading overlay
-                setTimeout(() => {
-                    document.getElementById('loadingOverlay').classList.add('hidden');
-                    document.getElementById('systemStatus').textContent = 'Ready';
-                }, 1500);
+                // If we have the modules, try to initialize
+                if (CorrectedVIB34DIntegration && UnifiedAudioGameDirector) {
+                    if (statusElement) statusElement.textContent = 'Creating audio context...';
 
-                // Start performance monitoring
-                startPerformanceMonitoring();
+                    // Create audio context
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    const audioContext = new AudioContext();
+                    console.log('🎵 Audio context created');
 
-                console.log('✅ System initialized successfully');
+                    if (statusElement) statusElement.textContent = 'Initializing directors...';
+
+                    // Initialize audio director
+                    audioDirector = new UnifiedAudioGameDirector(audioContext);
+                    console.log('📡 Audio director created');
+
+                    // Initialize VIB34D integration
+                    vib34dSystem = new CorrectedVIB34DIntegration(audioDirector);
+                    console.log('🎯 VIB34D integration created');
+
+                    // Mark as complete
+                    initializationComplete = true;
+                    clearTimeout(forceTimeout);
+                    if (loadingElement) loadingElement.classList.add('hidden');
+                    if (statusElement) statusElement.textContent = 'Ready';
+
+                    // Start performance monitoring
+                    startPerformanceMonitoring();
+
+                    console.log('🎉 System initialized successfully');
+                } else {
+                    throw new Error('Critical modules failed to load');
+                }
 
             } catch (error) {
                 console.error('❌ Initialization failed:', error);
-                document.getElementById('systemStatus').textContent = 'Error';
-                alert('Failed to initialize VIB34D system. Check console for details.');
+                clearTimeout(forceTimeout);
+
+                // Always hide loading overlay
+                if (loadingElement) loadingElement.classList.add('hidden');
+                if (statusElement) statusElement.textContent = 'Error - Basic Mode';
+
+                // Start basic mode as fallback
+                startBasicMode();
             }
         }
 
-        // Audio capture from microphone
+        // Basic fallback mode - completely safe
+        function startBasicMode() {
+            console.log('🔧 Starting basic mode...');
+
+            try {
+                // Update status safely
+                const statusElement = document.getElementById('systemStatus');
+                if (statusElement) statusElement.textContent = 'Basic Mode Active';
+
+                // Create a simple mock system that just shows parameter updates
+                let mockParameterCount = 0;
+                setInterval(() => {
+                    mockParameterCount++;
+
+                    // Safe parameter update
+                    try {
+                        window.updateParameter('mockParam' + (mockParameterCount % 24), Math.random());
+                    } catch (e) {
+                        console.error('Parameter update failed:', e);
+                    }
+
+                    // Safe param status update
+                    try {
+                        const paramElement = document.getElementById('paramStatus');
+                        if (paramElement) paramElement.textContent = mockParameterCount % 24;
+                    } catch (e) {
+                        console.error('Param status update failed:', e);
+                    }
+                }, 200);
+
+                console.log('✅ Basic mode active - showing mock parameters');
+            } catch (error) {
+                console.error('❌ Even basic mode failed:', error);
+
+                // Ultra-safe fallback - just log to console
+                console.log('🏃‍♂️ Running in console-only mode');
+                setInterval(() => {
+                    console.log('💫 VIB34D Mock Update:', Math.random().toFixed(3));
+                }, 1000);
+            }
+        }
+
+        // Safe audio capture from microphone
         async function startAudioCapture() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                if (audioDirector) {
+                if (audioDirector && typeof audioDirector.startMicrophoneInput === 'function') {
                     audioDirector.startMicrophoneInput(stream);
-                    document.getElementById('audioStatus').textContent = 'Microphone';
+
+                    const audioElement = document.getElementById('audioStatus');
+                    if (audioElement) audioElement.textContent = 'Microphone';
                     isRunning = true;
+                    console.log('✅ Microphone input started');
+                } else {
+                    console.warn('Audio director not ready for microphone input');
                 }
             } catch (error) {
                 console.error('Microphone access denied:', error);
-                alert('Microphone access denied. Please allow microphone access.');
+                const audioElement = document.getElementById('audioStatus');
+                if (audioElement) audioElement.textContent = 'Microphone Error';
             }
         }
 
-        // Load audio file
+        // Safe audio file loading
         function loadAudioFile() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'audio/*';
-            input.onchange = async (e) => {
-                const file = e.target.files[0];
-                if (file && audioDirector) {
-                    const arrayBuffer = await file.arrayBuffer();
-                    audioDirector.loadAudioFile(arrayBuffer);
-                    document.getElementById('audioStatus').textContent = 'File: ' + file.name;
+            try {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'audio/*';
+                input.onchange = async (e) => {
+                    try {
+                        const file = e.target.files[0];
+                        if (file && audioDirector && typeof audioDirector.loadAudioFile === 'function') {
+                            const arrayBuffer = await file.arrayBuffer();
+                            audioDirector.loadAudioFile(arrayBuffer);
+
+                            const audioElement = document.getElementById('audioStatus');
+                            if (audioElement) audioElement.textContent = 'File: ' + file.name;
+                            isRunning = true;
+                            console.log('✅ Audio file loaded:', file.name);
+                        } else {
+                            console.warn('Audio director not ready for file loading');
+                        }
+                    } catch (error) {
+                        console.error('Audio file loading failed:', error);
+                        const audioElement = document.getElementById('audioStatus');
+                        if (audioElement) audioElement.textContent = 'File Error';
+                    }
+                };
+                input.click();
+            } catch (error) {
+                console.error('File input creation failed:', error);
+            }
+        }
+
+        // Safe demo mode
+        function startDemo() {
+            try {
+                if (audioDirector && typeof audioDirector.startDemoMode === 'function') {
+                    audioDirector.startDemoMode();
+
+                    const audioElement = document.getElementById('audioStatus');
+                    if (audioElement) audioElement.textContent = 'Demo Mode';
+                    isRunning = true;
+                    console.log('✅ Demo mode started');
+                } else {
+                    console.warn('Audio director not ready for demo mode');
+
+                    // Fallback demo mode
+                    const audioElement = document.getElementById('audioStatus');
+                    if (audioElement) audioElement.textContent = 'Basic Demo';
                     isRunning = true;
                 }
-            };
-            input.click();
-        }
-
-        // Start demo mode with generated audio
-        function startDemo() {
-            if (audioDirector) {
-                audioDirector.startDemoMode();
-                document.getElementById('audioStatus').textContent = 'Demo Mode';
-                isRunning = true;
+            } catch (error) {
+                console.error('Demo mode failed:', error);
             }
         }
 
-        // Trigger visual burst effects
+        // Safe visual burst effects
         function triggerBurst(type) {
-            if (vib34dSystem) {
-                vib34dSystem.triggerIntensityBurst(1000, type);
-                console.log(`💥 ${type} burst triggered`);
+            try {
+                if (vib34dSystem && typeof vib34dSystem.triggerIntensityBurst === 'function') {
+                    vib34dSystem.triggerIntensityBurst(1000, type);
+                    console.log(`💥 ${type} burst triggered`);
+                } else {
+                    console.warn('VIB34D system not ready for burst effects');
+
+                    // Fallback visual indication
+                    window.updateParameter('burstEffect', Math.random());
+                    console.log(`💥 Mock ${type} burst triggered`);
+                }
+            } catch (error) {
+                console.error('Burst effect failed:', error);
             }
         }
 
@@ -435,34 +565,64 @@
             }
         }
 
-        // Performance monitoring
+        // Safe performance monitoring
         function startPerformanceMonitoring() {
             setInterval(() => {
-                const now = performance.now();
-                const delta = now - lastFrameTime;
-                const fps = Math.round(1000 / delta);
+                try {
+                    const now = performance.now();
+                    const delta = now - lastFrameTime;
+                    const fps = Math.round(1000 / delta);
 
-                document.getElementById('fpsStatus').textContent = fps;
+                    // Safe FPS update
+                    const fpsElement = document.getElementById('fpsStatus');
+                    if (fpsElement) fpsElement.textContent = fps;
 
-                if (vib34dSystem) {
-                    const state = vib34dSystem.getCoherentState();
-                    document.getElementById('paramStatus').textContent = Object.keys(state.parameters).length;
-                    document.getElementById('layerStatus').textContent = state.layers.length;
+                    if (vib34dSystem) {
+                        try {
+                            const state = vib34dSystem.getCoherentState();
 
-                    const particleCount = state.particles.holographicCount +
-                                        state.particles.reflectiveCount +
-                                        state.particles.depthCount;
-                    document.getElementById('particleStatus').textContent = particleCount;
+                            // Safe parameter count update
+                            const paramElement = document.getElementById('paramStatus');
+                            if (paramElement && state.parameters) {
+                                paramElement.textContent = Object.keys(state.parameters).length;
+                            }
 
-                    if (audioDirector && audioDirector.beatTracker) {
-                        document.getElementById('bpmStatus').textContent = Math.round(audioDirector.beatTracker.currentBPM);
+                            // Safe layer count update
+                            const layerElement = document.getElementById('layerStatus');
+                            if (layerElement && state.layers) {
+                                layerElement.textContent = state.layers.length;
+                            }
+
+                            // Safe particle count update
+                            const particleElement = document.getElementById('particleStatus');
+                            if (particleElement && state.particles) {
+                                const particleCount = (state.particles.holographicCount || 0) +
+                                                    (state.particles.reflectiveCount || 0) +
+                                                    (state.particles.depthCount || 0);
+                                particleElement.textContent = particleCount;
+                            }
+
+                            // Safe BPM update
+                            const bpmElement = document.getElementById('bpmStatus');
+                            if (bpmElement && audioDirector && audioDirector.beatTracker) {
+                                bpmElement.textContent = Math.round(audioDirector.beatTracker.currentBPM || 0);
+                            }
+
+                            // Safe energy update
+                            const energyElement = document.getElementById('energyStatus');
+                            if (energyElement && state.coherence && state.coherence.energyLevels) {
+                                energyElement.textContent = (state.coherence.energyLevels.total || 0).toFixed(2);
+                            }
+                        } catch (e) {
+                            console.warn('Performance monitoring state error:', e);
+                        }
                     }
 
-                    document.getElementById('energyStatus').textContent = state.coherence.energyLevels.total.toFixed(2);
+                    lastFrameTime = now;
+                } catch (error) {
+                    console.error('Performance monitoring failed:', error);
                 }
-
-                lastFrameTime = now;
-            }, 100);
+            }, 200); // Slower interval to reduce load
         }
 
         // Update parameter display
