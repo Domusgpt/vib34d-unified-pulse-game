@@ -330,10 +330,19 @@
                 const audioContext = new AudioContext();
 
                 // Initialize audio director
+                console.log('📡 Creating UnifiedAudioGameDirector...');
                 audioDirector = new modules[1].UnifiedAudioGameDirector(audioContext);
+                console.log('📡 Audio director created, methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(audioDirector)));
+
+                // Wait for audio director to fully initialize
+                console.log('⏳ Waiting for audio director initialization...');
+                await audioDirector.initPromise;
+                console.log('✅ Audio director initialized');
 
                 // Initialize VIB34D integration
+                console.log('🎯 Creating CorrectedVIB34DIntegration...');
                 vib34dSystem = new modules[0].CorrectedVIB34DIntegration(audioDirector);
+                console.log('✅ VIB34D integration created');
 
                 // Hide loading overlay
                 setTimeout(() => {

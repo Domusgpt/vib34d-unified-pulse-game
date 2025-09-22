@@ -212,6 +212,12 @@ export class CorrectedVIB34DIntegration {
 
     startIntegrationLoop() {
         const updateCycle = () => {
+            // Check if audio director is ready
+            if (!this.audioDirector || typeof this.audioDirector.getCurrentAnalysis !== 'function') {
+                requestAnimationFrame(updateCycle);
+                return;
+            }
+
             // Get real-time audio analysis
             const audioData = this.audioDirector.getCurrentAnalysis();
 

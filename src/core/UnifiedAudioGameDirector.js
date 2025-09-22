@@ -47,7 +47,8 @@ export class UnifiedAudioGameDirector {
             unlockLevel: 1
         };
 
-        this.init();
+        // Don't auto-initialize, let the caller do it
+        this.initPromise = this.init();
     }
 
     async init() {
