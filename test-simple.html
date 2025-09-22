@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VIB34D Quick Test</title>
+    <style>body { margin:0; background:#000; color:#fff; font-family:monospace; }</style>
+</head>
+<body>
+    <div id="log" style="padding:20px; white-space:pre-line;"></div>
+
+    <script type="module">
+        const log = document.getElementById('log');
+        function logMessage(msg) {
+            log.textContent += msg + '\n';
+            console.log(msg);
+        }
+
+        // Mock window.updateParameter
+        window.updateParameter = function(param, value) {
+            logMessage(`🎛️ ${param} = ${value.toFixed(3)}`);
+        };
+
+        // Mock audio director
+        const mockAudio = {
+            getCurrentAnalysis() {
+                return {
+                    frequencyBands: {
+                        bass: { energy: Math.random() * 0.8 },
+                        mid: { energy: Math.random() * 0.6 },
+                        treble: { energy: Math.random() * 0.4 }
+                    },
+                    totalEnergy: Math.random() * 0.7,
+                    complexityScore: Math.random(),
+                    spectralCentroid: 400 + Math.random() * 800,
+                    spectralBandwidth: 100 + Math.random() * 200,
+                    pitch: { frequency: 440 + Math.random() * 200 }
+                };
+            },
+            getBeatInfo() {
+                return {
+                    bpm: 120 + Math.random() * 40,
+                    timeSinceLastBeat: Math.random() * 500,
+                    beatCount: Math.floor(Math.random() * 100)
+                };
+            }
+        };
+
+        try {
+            logMessage('🚀 Starting VIB34D System Test...');
+
+            // Import and test the system
+            const { CorrectedVIB34DIntegration } = await import('./src/core/CorrectedVIB34DIntegration.js');
+            logMessage('✅ Module imported successfully');
+
+            // Create instance
+            const system = new CorrectedVIB34DIntegration(mockAudio);
+            logMessage('✅ System initialized');
+
+            // Wait a moment for initialization
+            setTimeout(() => {
+                logMessage('📊 System State:');
+                const state = system.getCoherentState();
+                logMessage(`📐 Parameters: ${Object.keys(state.parameters).length}`);
+                logMessage(`🎨 Visual Feedback: ${Object.keys(state.visualFeedback).length}`);
+                logMessage(`✨ Holographic: ${Object.keys(state.holographicState).length}`);
+                logMessage(`🎭 Layers: ${state.layers.length}`);
+
+                // Test burst effects
+                setTimeout(() => {
+                    logMessage('💥 Testing burst effects...');
+                    system.triggerIntensityBurst(500, 'energy');
+
+                    setTimeout(() => {
+                        system.triggerIntensityBurst(500, 'chaos');
+                        logMessage('🎉 ALL TESTS PASSED!');
+                    }, 600);
+                }, 1000);
+            }, 500);
+
+        } catch (error) {
+            logMessage('❌ Error: ' + error.message);
+            logMessage('Stack: ' + error.stack);
+        }
+    </script>
+</body>
+</html>

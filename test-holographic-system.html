@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D Holographic System Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        .control-panel {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 1000;
+            font-size: 12px;
+        }
+
+        .control-panel button {
+            margin: 5px;
+            padding: 8px 12px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .control-panel button:hover {
+            background: #555;
+        }
+
+        .status-display {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 1000;
+            font-size: 11px;
+            font-family: monospace;
+        }
+
+        #vib34d-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle, #001122, #000000);
+        }
+
+        .error-display {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(200, 0, 0, 0.9);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1001;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="vib34d-container"></div>
+
+    <div class="control-panel">
+        <h3>🎮 VIB34D Holographic Test</h3>
+        <button onclick="startAudioTest()">▶️ Start Audio Test</button>
+        <button onclick="triggerBurst('energy')">⚡ Energy Burst</button>
+        <button onclick="triggerBurst('chaos')">🌀 Chaos Burst</button>
+        <button onclick="triggerBurst('calm')">🌊 Calm Burst</button>
+        <button onclick="toggleLayers()">👁️ Toggle Layers</button>
+        <button onclick="resetSystem()">🔄 Reset</button>
+        <br>
+        <label>Complexity: <input type="range" id="complexitySlider" min="0" max="1" step="0.1" value="0.5" onchange="updateComplexity()"></label>
+        <br>
+        <label>Energy: <input type="range" id="energySlider" min="0" max="1" step="0.1" value="0.5" onchange="updateEnergy()"></label>
+    </div>
+
+    <div class="status-display" id="statusDisplay">
+        <div>Status: Initializing...</div>
+        <div id="parameterStatus">Parameters: Loading...</div>
+        <div id="layerStatus">Layers: Loading...</div>
+        <div id="particleStatus">Particles: Loading...</div>
+        <div id="errorStatus">Errors: None</div>
+    </div>
+
+    <div class="error-display" id="errorDisplay"></div>
+
+    <!-- Mock VIB34D Global System -->
+    <script>
+        // Mock window.updateParameter function for testing
+        window.updateParameter = function(param, value) {
+            console.log(`🎛️ VIB34D Parameter Update: ${param} = ${value}`);
+
+            // Store parameters for debugging
+            if (!window.vib34dParams) window.vib34dParams = {};
+            window.vib34dParams[param] = value;
+
+            // Update status display
+            updateParameterDisplay();
+        };
+
+        // Mock audio analysis data
+        class MockAudioDirector {
+            constructor() {
+                this.isPlaying = false;
+                this.mockTime = 0;
+                this.bpm = 120;
+                this.complexity = 0.5;
+                this.energy = 0.5;
+            }
+
+            start() {
+                this.isPlaying = true;
+                console.log("🎵 Mock audio started");
+            }
+
+            stop() {
+                this.isPlaying = false;
+                console.log("🎵 Mock audio stopped");
+            }
+
+            getCurrentAnalysis() {
+                this.mockTime += 16; // 60fps
+                const phase = (this.mockTime / 1000) * (this.bpm / 60) * Math.PI * 2;
+
+                return {
+                    frequencyBands: {
+                        bass: { energy: this.energy * (0.5 + Math.sin(phase) * 0.5) },
+                        mid: { energy: this.energy * (0.5 + Math.sin(phase * 1.5) * 0.5) },
+                        treble: { energy: this.energy * (0.5 + Math.sin(phase * 2) * 0.5) }
+                    },
+                    totalEnergy: this.energy,
+                    complexityScore: this.complexity,
+                    spectralCentroid: 440 + Math.sin(phase * 0.7) * 200,
+                    spectralBandwidth: 100 + this.complexity * 300,
+                    pitch: { frequency: 440 + Math.sin(phase * 0.3) * 100 }
+                };
+            }
+
+            getBeatInfo() {
+                const beatTime = (this.mockTime / 1000) * (this.bpm / 60);
+                return {
+                    bpm: this.bpm,
+                    timeSinceLastBeat: (beatTime % 1) * (60000 / this.bpm),
+                    beatCount: Math.floor(beatTime)
+                };
+            }
+        }
+
+        // Initialize system
+        let vib34dIntegration;
+        let mockAudio;
+        let systemRunning = false;
+
+        async function initializeSystem() {
+            try {
+                console.log("🚀 Initializing VIB34D Holographic System...");
+
+                // Create mock audio director
+                mockAudio = new MockAudioDirector();
+
+                // Import and initialize the integration system
+                const { CorrectedVIB34DIntegration } = await import('./src/core/CorrectedVIB34DIntegration.js');
+                vib34dIntegration = new CorrectedVIB34DIntegration(mockAudio);
+
+                console.log("✅ System initialized successfully");
+                updateStatus("System Ready");
+
+            } catch (error) {
+                console.error("❌ Initialization failed:", error);
+                showError(`Initialization failed: ${error.message}`);
+            }
+        }
+
+        function startAudioTest() {
+            if (!mockAudio || !vib34dIntegration) {
+                showError("System not initialized");
+                return;
+            }
+
+            mockAudio.start();
+            systemRunning = true;
+            updateStatus("Audio Test Running");
+            console.log("🎵 Audio test started");
+        }
+
+        function triggerBurst(type) {
+            if (!vib34dIntegration) {
+                showError("System not initialized");
+                return;
+            }
+
+            console.log(`💥 Triggering ${type} burst`);
+            vib34dIntegration.triggerIntensityBurst(1000, type);
+        }
+
+        function toggleLayers() {
+            if (!vib34dIntegration) {
+                showError("System not initialized");
+                return;
+            }
+
+            const layers = Object.values(vib34dIntegration.holographicLayers);
+            layers.forEach((layer, index) => {
+                if (layer.canvas) {
+                    const isVisible = layer.canvas.style.display !== 'none';
+                    layer.canvas.style.display = isVisible ? 'none' : 'block';
+                }
+            });
+            console.log("👁️ Layers toggled");
+        }
+
+        function resetSystem() {
+            if (!vib34dIntegration) {
+                showError("System not initialized");
+                return;
+            }
+
+            vib34dIntegration.resetToDefaults();
+            mockAudio.mockTime = 0;
+            console.log("🔄 System reset");
+        }
+
+        function updateComplexity() {
+            const value = document.getElementById('complexitySlider').value;
+            if (mockAudio) {
+                mockAudio.complexity = parseFloat(value);
+                console.log(`🎛️ Complexity set to ${value}`);
+            }
+        }
+
+        function updateEnergy() {
+            const value = document.getElementById('energySlider').value;
+            if (mockAudio) {
+                mockAudio.energy = parseFloat(value);
+                console.log(`⚡ Energy set to ${value}`);
+            }
+        }
+
+        function updateStatus(message) {
+            document.getElementById('statusDisplay').children[0].textContent = `Status: ${message}`;
+        }
+
+        function updateParameterDisplay() {
+            if (!window.vib34dParams) return;
+
+            const paramCount = Object.keys(window.vib34dParams).length;
+            document.getElementById('parameterStatus').textContent = `Parameters: ${paramCount} active`;
+
+            if (vib34dIntegration) {
+                const state = vib34dIntegration.getCoherentState();
+                document.getElementById('layerStatus').textContent = `Layers: ${state.layers.length} active`;
+                document.getElementById('particleStatus').textContent =
+                    `Particles: H:${state.particles.holographicCount} R:${state.particles.reflectiveCount} D:${state.particles.depthCount}`;
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorDisplay');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+
+            document.getElementById('errorStatus').textContent = `Errors: ${message}`;
+        }
+
+        // Status update loop
+        setInterval(() => {
+            if (systemRunning && vib34dIntegration) {
+                updateParameterDisplay();
+
+                // Validation check
+                const validation = vib34dIntegration.validateIntegration();
+                if (!validation.globalUpdateFunction) {
+                    showError("Missing window.updateParameter function");
+                }
+            }
+        }, 1000);
+
+        // Initialize on load
+        window.addEventListener('load', initializeSystem);
+
+        // Error handling
+        window.addEventListener('error', (event) => {
+            console.error("Global error:", event.error);
+            showError(`Global error: ${event.error.message}`);
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (event) => {
+            switch(event.key) {
+                case ' ': startAudioTest(); event.preventDefault(); break;
+                case 'e': triggerBurst('energy'); break;
+                case 'c': triggerBurst('chaos'); break;
+                case 'r': resetSystem(); break;
+                case 'l': toggleLayers(); break;
+            }
+        });
+    </script>
+
+    <div style="position: fixed; bottom: 10px; right: 10px; color: white; font-size: 11px;">
+        Shortcuts: SPACE=Start, E=Energy, C=Chaos, R=Reset, L=Layers
+    </div>
+</body>
+</html>
