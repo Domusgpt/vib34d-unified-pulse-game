@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D Unified Pulse Game - Holographic Audio-Reactive Experience</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: radial-gradient(ellipse at center, #0a0a2e 0%, #000000 100%);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #vib34d-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        .control-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            z-index: 1000;
+            max-width: 300px;
+        }
+
+        .control-panel h2 {
+            margin-bottom: 15px;
+            font-size: 20px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .control-button {
+            display: block;
+            width: 100%;
+            margin: 8px 0;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+        }
+
+        .control-button:active {
+            transform: translateY(0);
+        }
+
+        .status-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            z-index: 1000;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 5px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+        }
+
+        .status-label {
+            color: #00ffff;
+        }
+
+        .status-value {
+            color: #ff00ff;
+            font-weight: bold;
+        }
+
+        .slider-control {
+            margin: 15px 0;
+        }
+
+        .slider-control label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #00ffff;
+        }
+
+        .slider-control input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            background: transparent;
+        }
+
+        .slider-control input[type="range"]::-webkit-slider-track {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        .slider-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: linear-gradient(135deg, #00ffff 0%, #ff00ff 100%);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            transition: opacity 1s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-spinner {
+            width: 100px;
+            height: 100px;
+            border: 3px solid transparent;
+            border-top-color: #00ffff;
+            border-right-color: #ff00ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            font-size: 18px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .info-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            font-size: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .info-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .control-panel, .status-panel {
+                transform: scale(0.9);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Initializing VIB34D Holographic System...</div>
+    </div>
+
+    <div id="vib34d-container"></div>
+
+    <div class="control-panel">
+        <h2>🎮 VIB34D Controls</h2>
+
+        <button class="control-button" onclick="startAudioCapture()">
+            🎤 Start Microphone
+        </button>
+
+        <button class="control-button" onclick="loadAudioFile()">
+            📁 Load Audio File
+        </button>
+
+        <button class="control-button" onclick="startDemo()">
+            ▶️ Start Demo Mode
+        </button>
+
+        <button class="control-button" onclick="triggerBurst('energy')">
+            ⚡ Energy Burst
+        </button>
+
+        <button class="control-button" onclick="triggerBurst('chaos')">
+            🌀 Chaos Burst
+        </button>
+
+        <button class="control-button" onclick="triggerBurst('calm')">
+            🌊 Calm Burst
+        </button>
+
+        <div class="slider-control">
+            <label for="complexitySlider">Complexity: <span id="complexityValue">50%</span></label>
+            <input type="range" id="complexitySlider" min="0" max="100" value="50"
+                   oninput="updateComplexity(this.value)">
+        </div>
+
+        <div class="slider-control">
+            <label for="energySlider">Energy: <span id="energyValue">50%</span></label>
+            <input type="range" id="energySlider" min="0" max="100" value="50"
+                   oninput="updateEnergy(this.value)">
+        </div>
+
+        <div class="slider-control">
+            <label for="latencySlider">Latency Compensation: <span id="latencyValue">0ms</span></label>
+            <input type="range" id="latencySlider" min="-200" max="200" value="0"
+                   oninput="updateLatency(this.value)">
+        </div>
+    </div>
+
+    <div class="status-panel">
+        <div class="status-item">
+            <span class="status-label">Status:</span>
+            <span class="status-value" id="systemStatus">Initializing</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">FPS:</span>
+            <span class="status-value" id="fpsStatus">0</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">Parameters:</span>
+            <span class="status-value" id="paramStatus">0</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">Layers:</span>
+            <span class="status-value" id="layerStatus">0</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">Particles:</span>
+            <span class="status-value" id="particleStatus">0</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">Audio Source:</span>
+            <span class="status-value" id="audioStatus">None</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">BPM:</span>
+            <span class="status-value" id="bpmStatus">0</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">Energy:</span>
+            <span class="status-value" id="energyStatus">0.00</span>
+        </div>
+    </div>
+
+    <div class="info-button" onclick="showInfo()">ℹ️</div>
+
+    <script type="module">
+        // Global parameter update system (mock for testing, replace with actual VIB34D)
+        window.updateParameter = function(param, value) {
+            console.log(`VIB34D: ${param} = ${value}`);
+            updateParameterDisplay();
+        };
+
+        let vib34dSystem = null;
+        let audioDirector = null;
+        let isRunning = false;
+        let frameCount = 0;
+        let lastFrameTime = performance.now();
+
+        // Import and initialize the system
+        async function initializeSystem() {
+            try {
+                console.log('🚀 Initializing VIB34D Holographic System...');
+
+                // Import modules
+                const modules = await Promise.all([
+                    import('./src/core/CorrectedVIB34DIntegration.js'),
+                    import('./src/core/UnifiedAudioGameDirector.js'),
+                    import('./src/audio/AudioDrivenLevelGenerator.js'),
+                    import('./src/particles/AudioReactiveParticleSystem.js'),
+                    import('./src/visual/MathematicallyCoherentVisualSystem.js')
+                ]);
+
+                // Create audio context
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const audioContext = new AudioContext();
+
+                // Initialize audio director
+                audioDirector = new modules[1].UnifiedAudioGameDirector(audioContext);
+
+                // Initialize VIB34D integration
+                vib34dSystem = new modules[0].CorrectedVIB34DIntegration(audioDirector);
+
+                // Hide loading overlay
+                setTimeout(() => {
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    document.getElementById('systemStatus').textContent = 'Ready';
+                }, 1500);
+
+                // Start performance monitoring
+                startPerformanceMonitoring();
+
+                console.log('✅ System initialized successfully');
+
+            } catch (error) {
+                console.error('❌ Initialization failed:', error);
+                document.getElementById('systemStatus').textContent = 'Error';
+                alert('Failed to initialize VIB34D system. Check console for details.');
+            }
+        }
+
+        // Audio capture from microphone
+        async function startAudioCapture() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                if (audioDirector) {
+                    audioDirector.startMicrophoneInput(stream);
+                    document.getElementById('audioStatus').textContent = 'Microphone';
+                    isRunning = true;
+                }
+            } catch (error) {
+                console.error('Microphone access denied:', error);
+                alert('Microphone access denied. Please allow microphone access.');
+            }
+        }
+
+        // Load audio file
+        function loadAudioFile() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'audio/*';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (file && audioDirector) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    audioDirector.loadAudioFile(arrayBuffer);
+                    document.getElementById('audioStatus').textContent = 'File: ' + file.name;
+                    isRunning = true;
+                }
+            };
+            input.click();
+        }
+
+        // Start demo mode with generated audio
+        function startDemo() {
+            if (audioDirector) {
+                audioDirector.startDemoMode();
+                document.getElementById('audioStatus').textContent = 'Demo Mode';
+                isRunning = true;
+            }
+        }
+
+        // Trigger visual burst effects
+        function triggerBurst(type) {
+            if (vib34dSystem) {
+                vib34dSystem.triggerIntensityBurst(1000, type);
+                console.log(`💥 ${type} burst triggered`);
+            }
+        }
+
+        // Update complexity
+        function updateComplexity(value) {
+            document.getElementById('complexityValue').textContent = value + '%';
+            if (audioDirector && audioDirector.mockAudio) {
+                audioDirector.mockAudio.complexity = value / 100;
+            }
+        }
+
+        // Update energy
+        function updateEnergy(value) {
+            document.getElementById('energyValue').textContent = value + '%';
+            if (audioDirector && audioDirector.mockAudio) {
+                audioDirector.mockAudio.energy = value / 100;
+            }
+        }
+
+        // Update latency compensation
+        function updateLatency(value) {
+            document.getElementById('latencyValue').textContent = value + 'ms';
+            if (vib34dSystem) {
+                vib34dSystem.latencyOffsets.userAdjustment = parseInt(value);
+            }
+        }
+
+        // Performance monitoring
+        function startPerformanceMonitoring() {
+            setInterval(() => {
+                const now = performance.now();
+                const delta = now - lastFrameTime;
+                const fps = Math.round(1000 / delta);
+
+                document.getElementById('fpsStatus').textContent = fps;
+
+                if (vib34dSystem) {
+                    const state = vib34dSystem.getCoherentState();
+                    document.getElementById('paramStatus').textContent = Object.keys(state.parameters).length;
+                    document.getElementById('layerStatus').textContent = state.layers.length;
+
+                    const particleCount = state.particles.holographicCount +
+                                        state.particles.reflectiveCount +
+                                        state.particles.depthCount;
+                    document.getElementById('particleStatus').textContent = particleCount;
+
+                    if (audioDirector && audioDirector.beatTracker) {
+                        document.getElementById('bpmStatus').textContent = Math.round(audioDirector.beatTracker.currentBPM);
+                    }
+
+                    document.getElementById('energyStatus').textContent = state.coherence.energyLevels.total.toFixed(2);
+                }
+
+                lastFrameTime = now;
+            }, 100);
+        }
+
+        // Update parameter display
+        function updateParameterDisplay() {
+            // This will be called when parameters are updated
+            frameCount++;
+        }
+
+        // Show info
+        function showInfo() {
+            alert(`VIB34D Unified Pulse Game
+
+🎮 Controls:
+• Space: Start audio capture
+• E: Energy burst
+• C: Chaos burst
+• L: Toggle layers
+• R: Reset system
+
+🎵 Features:
+• 24 real-time audio-reactive parameters
+• 5-layer holographic rendering
+• 3-type particle system
+• Beat detection & synchronization
+• Candy Crush style progression
+
+🚀 Performance optimized for 60+ FPS`);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (event) => {
+            switch(event.key.toLowerCase()) {
+                case ' ': startAudioCapture(); event.preventDefault(); break;
+                case 'e': triggerBurst('energy'); break;
+                case 'c': triggerBurst('chaos'); break;
+                case 'a': triggerBurst('calm'); break;
+                case 'd': startDemo(); break;
+                case 'i': showInfo(); break;
+            }
+        });
+
+        // Initialize on page load
+        window.addEventListener('load', initializeSystem);
+
+        // Handle audio context resume
+        document.addEventListener('click', () => {
+            if (audioDirector && audioDirector.audioContext.state === 'suspended') {
+                audioDirector.audioContext.resume();
+            }
+        });
+    </script>
+</body>
+</html>
