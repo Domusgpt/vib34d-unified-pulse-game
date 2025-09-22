@@ -8,11 +8,12 @@
  */
 
 export class UnifiedAudioGameDirector {
-    constructor(gameEngine) {
-        this.gameEngine = gameEngine;
+    constructor(audioContext) {
+        this.gameEngine = null; // Will be set later if needed
+        this.audioContext = audioContext;
 
         // Audio analysis components (from Branch #1)
-        this.audioContext = null;
+        // this.audioContext already set above
         this.analyser = null;
         this.microphone = null;
         this.audioSource = null;
@@ -55,11 +56,18 @@ export class UnifiedAudioGameDirector {
         this.initializeGameState();
         this.initializeLevelGenerator();
         this.startAudioProcessing();
+
+        // Start with demo mode if no microphone
+        if (this.inputMode === 'synthetic') {
+            this.startDemoMode();
+        }
     }
 
     async initializeAudioContext() {
         try {
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            if (!this.audioContext) {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
             this.analyser = this.audioContext.createAnalyser();
             this.analyser.fftSize = 4096;
             this.analyser.smoothingTimeConstant = 0.8;
@@ -131,20 +139,20 @@ export class UnifiedAudioGameDirector {
     }
 
     initializeLevelGenerator() {
-        // Import and initialize the audio-driven level generator
-        this.levelGenerator = new AudioDrivenLevelGenerator(this, this.gameState);
+        // Level generator will be initialized later when needed
+        this.levelGenerator = null;
     }
 
     startAudioProcessing() {
         const processAudio = () => {
-            if (!this.isActive) {
-                requestAnimationFrame(processAudio);
-                return;
+            if (this.inputMode === 'synthetic') {
+                // Generate new synthetic data each frame
+                this.generateSyntheticAudioData();
+            } else if (this.isActive && this.analyser) {
+                // Get real-time audio data
+                this.analyser.getFloatFrequencyData(this.frequencyData);
+                this.analyser.getFloatTimeDomainData(this.timeData);
             }
-
-            // Get real-time audio data
-            this.analyser.getFloatFrequencyData(this.frequencyData);
-            this.analyser.getFloatTimeDomainData(this.timeData);
 
             // Perform comprehensive audio analysis
             const audioAnalysis = this.performCompleteAudioAnalysis();
@@ -435,6 +443,29 @@ export class UnifiedAudioGameDirector {
         return this.timeData;
     }
 
+    getCurrentAnalysis() {
+        // Return current audio analysis data in the expected format
+        const frequencyBands = this.analyzeFrequencyBands();
+        const beat = this.detectBeat();
+        const pitch = this.detectPitch();
+        const totalEnergy = this.calculateTotalEnergy();
+
+        return {
+            frequencyBands: {
+                bass: { energy: frequencyBands.bass.energy },
+                mid: { energy: frequencyBands.mid.energy },
+                treble: { energy: frequencyBands.presence.energy + frequencyBands.brilliance.energy }
+            },
+            totalEnergy: totalEnergy,
+            complexityScore: this.calculateAudioComplexity(),
+            spectralCentroid: this.calculateSpectralCentroid(),
+            spectralBandwidth: this.calculateSpectralBandwidth(),
+            pitch: pitch,
+            beat: beat,
+            rhythmComplexity: this.analyzeRhythmComplexity()
+        };
+    }
+
     getBeatInfo() {
         return {
             bpm: this.currentBPM,
@@ -442,6 +473,77 @@ export class UnifiedAudioGameDirector {
             timeSinceLastBeat: Date.now() - this.lastBeatTime,
             beatHistory: [...this.beatHistory]
         };
+    }
+
+    calculateSpectralCentroid() {
+        let numerator = 0;
+        let denominator = 0;
+
+        for (let i = 0; i < this.frequencyData.length; i++) {
+            const magnitude = Math.pow(10, this.frequencyData[i] / 20);
+            const frequency = i * (this.audioContext.sampleRate / 2) / this.frequencyData.length;
+            numerator += frequency * magnitude;
+            denominator += magnitude;
+        }
+
+        return denominator > 0 ? numerator / denominator : 440;
+    }
+
+    calculateSpectralBandwidth() {
+        const centroid = this.calculateSpectralCentroid();
+        let numerator = 0;
+        let denominator = 0;
+
+        for (let i = 0; i < this.frequencyData.length; i++) {
+            const magnitude = Math.pow(10, this.frequencyData[i] / 20);
+            const frequency = i * (this.audioContext.sampleRate / 2) / this.frequencyData.length;
+            numerator += Math.pow(frequency - centroid, 2) * magnitude;
+            denominator += magnitude;
+        }
+
+        return denominator > 0 ? Math.sqrt(numerator / denominator) : 100;
+    }
+
+    calculateEnergyVariance() {
+        if (this.energyHistory.length < 10) return 0.1;
+
+        const energies = this.energyHistory.slice(-10).map(e => e.energy);
+        const mean = energies.reduce((sum, e) => sum + e, 0) / energies.length;
+        const variance = energies.reduce((sum, e) => sum + Math.pow(e - mean, 2), 0) / energies.length;
+
+        return variance;
+    }
+
+    startDemoMode() {
+        // Generate synthetic audio data for demo
+        this.inputMode = 'synthetic';
+        this.isActive = true;
+
+        // Populate frequency data with synthetic values
+        this.generateSyntheticAudioData();
+
+        console.log('Demo mode started');
+    }
+
+    generateSyntheticAudioData() {
+        // Generate realistic-looking frequency data
+        const time = Date.now() / 1000;
+
+        for (let i = 0; i < this.frequencyData.length; i++) {
+            // Create synthetic frequency spectrum
+            const frequency = i * (22050 / this.frequencyData.length);
+            const bassComponent = Math.sin(time * 2) * Math.exp(-frequency / 200) * -20;
+            const midComponent = Math.sin(time * 3) * Math.exp(-Math.abs(frequency - 1000) / 500) * -30;
+            const trebleComponent = Math.sin(time * 5) * Math.exp(-Math.abs(frequency - 4000) / 1000) * -40;
+
+            this.frequencyData[i] = bassComponent + midComponent + trebleComponent - 60;
+        }
+
+        // Generate synthetic time domain data
+        for (let i = 0; i < this.timeData.length; i++) {
+            this.timeData[i] = Math.sin(time * 440 * 2 * Math.PI / 44100 * i) * 0.1 +
+                              Math.sin(time * 220 * 2 * Math.PI / 44100 * i) * 0.05;
+        }
     }
 
     getGameState() {
