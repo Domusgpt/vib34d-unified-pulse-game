@@ -445,26 +445,63 @@ export class UnifiedAudioGameDirector {
     }
 
     getCurrentAnalysis() {
-        // Return current audio analysis data in the expected format
-        const frequencyBands = this.analyzeFrequencyBands();
-        const beat = this.detectBeat();
-        const pitch = this.detectPitch();
-        const totalEnergy = this.calculateTotalEnergy();
+        // Ensure basic data is available even during initialization
+        if (!this.frequencyData || this.frequencyData.length === 0) {
+            // Return safe default values during initialization
+            return {
+                frequencyBands: {
+                    bass: { energy: 0.3 },
+                    mid: { energy: 0.2 },
+                    treble: { energy: 0.1 }
+                },
+                totalEnergy: 0.2,
+                complexityScore: 0.5,
+                spectralCentroid: 440,
+                spectralBandwidth: 100,
+                pitch: { frequency: 440, confidence: 0 },
+                beat: { detected: false, strength: 0, confidence: 0, timeSinceLastBeat: 0 },
+                rhythmComplexity: 0.5
+            };
+        }
 
-        return {
-            frequencyBands: {
-                bass: { energy: frequencyBands.bass.energy },
-                mid: { energy: frequencyBands.mid.energy },
-                treble: { energy: frequencyBands.presence.energy + frequencyBands.brilliance.energy }
-            },
-            totalEnergy: totalEnergy,
-            complexityScore: this.calculateAudioComplexity(),
-            spectralCentroid: this.calculateSpectralCentroid(),
-            spectralBandwidth: this.calculateSpectralBandwidth(),
-            pitch: pitch,
-            beat: beat,
-            rhythmComplexity: this.analyzeRhythmComplexity()
-        };
+        try {
+            // Return current audio analysis data in the expected format
+            const frequencyBands = this.analyzeFrequencyBands();
+            const beat = this.detectBeat();
+            const pitch = this.detectPitch();
+            const totalEnergy = this.calculateTotalEnergy();
+
+            return {
+                frequencyBands: {
+                    bass: { energy: frequencyBands.bass?.energy || 0 },
+                    mid: { energy: frequencyBands.mid?.energy || 0 },
+                    treble: { energy: (frequencyBands.presence?.energy || 0) + (frequencyBands.brilliance?.energy || 0) }
+                },
+                totalEnergy: totalEnergy || 0,
+                complexityScore: this.calculateAudioComplexity() || 0.5,
+                spectralCentroid: this.calculateSpectralCentroid() || 440,
+                spectralBandwidth: this.calculateSpectralBandwidth() || 100,
+                pitch: pitch || { frequency: 440, confidence: 0 },
+                beat: beat || { detected: false, strength: 0, confidence: 0, timeSinceLastBeat: 0 },
+                rhythmComplexity: this.analyzeRhythmComplexity() || 0.5
+            };
+        } catch (error) {
+            console.warn('Error in getCurrentAnalysis, returning defaults:', error);
+            return {
+                frequencyBands: {
+                    bass: { energy: 0.3 },
+                    mid: { energy: 0.2 },
+                    treble: { energy: 0.1 }
+                },
+                totalEnergy: 0.2,
+                complexityScore: 0.5,
+                spectralCentroid: 440,
+                spectralBandwidth: 100,
+                pitch: { frequency: 440, confidence: 0 },
+                beat: { detected: false, strength: 0, confidence: 0, timeSinceLastBeat: 0 },
+                rhythmComplexity: 0.5
+            };
+        }
     }
 
     getBeatInfo() {
