@@ -631,25 +631,22 @@
             frameCount++;
         }
 
-        // Show info
+        // Show info - NO ALERTS (bad UX)
         function showInfo() {
-            alert(`VIB34D Unified Pulse Game
+            console.log(`VIB34D Unified Pulse Game Info:
+🎮 Controls: Space=audio, E=energy, C=chaos, L=layers, R=reset
+🎵 Features: 24 params, 5 layers, 3 particle types, beat sync
+🚀 Performance: 60+ FPS optimized`);
 
-🎮 Controls:
-• Space: Start audio capture
-• E: Energy burst
-• C: Chaos burst
-• L: Toggle layers
-• R: Reset system
-
-🎵 Features:
-• 24 real-time audio-reactive parameters
-• 5-layer holographic rendering
-• 3-type particle system
-• Beat detection & synchronization
-• Candy Crush style progression
-
-🚀 Performance optimized for 60+ FPS`);
+            // Better UX - update status instead of alert
+            const statusElement = document.getElementById('systemStatus');
+            if (statusElement) {
+                const originalText = statusElement.textContent;
+                statusElement.textContent = 'Info shown in console';
+                setTimeout(() => {
+                    statusElement.textContent = originalText;
+                }, 2000);
+            }
         }
 
         // Keyboard shortcuts

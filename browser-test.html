@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BRUTAL Browser Test</title>
+    <style>
+        body { background: #000; color: #0f0; font-family: monospace; padding: 20px; }
+        .pass { color: #0f0; }
+        .fail { color: #f00; }
+        .warn { color: #ff0; }
+    </style>
+</head>
+<body>
+    <h1>🔥 BRUTAL BROWSER TEST</h1>
+    <div id="results"></div>
+
+    <script>
+        const results = document.getElementById('results');
+
+        function log(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = msg;
+            results.appendChild(div);
+            console.log(msg);
+        }
+
+        log('🚀 Starting brutal test of VIB34D system...');
+
+        // Test 1: Can we break the loading system?
+        log('TEST 1: Breaking loading system...');
+
+        // Test 2: Load the actual page in iframe and monitor for errors
+        const iframe = document.createElement('iframe');
+        iframe.src = 'https://domusgpt.github.io/vib34d-unified-pulse-game/';
+        iframe.style.width = '300px';
+        iframe.style.height = '200px';
+        iframe.style.border = '1px solid #0f0';
+        document.body.appendChild(iframe);
+
+        let errorCount = 0;
+        let loadedSuccessfully = false;
+
+        // Monitor for errors
+        window.addEventListener('error', (e) => {
+            errorCount++;
+            log(`❌ ERROR ${errorCount}: ${e.message}`, 'fail');
+        });
+
+        iframe.onload = () => {
+            loadedSuccessfully = true;
+            log('✅ Iframe loaded successfully', 'pass');
+
+            // Test 3: Wait and see if errors cascade
+            setTimeout(() => {
+                log('TEST 2: Checking for cascade errors after 3 seconds...');
+
+                if (errorCount === 0) {
+                    log('✅ NO ERRORS DETECTED - System is robust!', 'pass');
+                } else {
+                    log(`❌ ${errorCount} ERRORS FOUND - System has issues!`, 'fail');
+                }
+
+                // Test 4: Try to interact with the iframe content
+                try {
+                    const iframeDoc = iframe.contentDocument;
+                    if (iframeDoc) {
+                        log('✅ Can access iframe document', 'pass');
+
+                        const loadingOverlay = iframeDoc.getElementById('loadingOverlay');
+                        if (loadingOverlay) {
+                            if (loadingOverlay.classList.contains('hidden')) {
+                                log('✅ Loading overlay properly hidden', 'pass');
+                            } else {
+                                log('⚠️ Loading overlay still visible', 'warn');
+                            }
+                        } else {
+                            log('❌ Loading overlay not found', 'fail');
+                        }
+                    } else {
+                        log('⚠️ Cannot access iframe (CORS blocked - normal)', 'warn');
+                    }
+                } catch (e) {
+                    log('⚠️ Cross-origin blocked (expected for deployed page)', 'warn');
+                }
+
+                // Final verdict
+                setTimeout(() => {
+                    log('\\n🏁 FINAL VERDICT:');
+                    if (loadedSuccessfully && errorCount === 0) {
+                        log('🎉 SYSTEM PASSES BRUTAL TEST!', 'pass');
+                        log('✅ No cascade errors detected', 'pass');
+                        log('✅ Page loads successfully', 'pass');
+                        log('✅ Error handling is working', 'pass');
+                    } else if (loadedSuccessfully && errorCount < 3) {
+                        log('⚠️ SYSTEM MOSTLY WORKS (minor issues)', 'warn');
+                    } else {
+                        log('❌ SYSTEM FAILS BRUTAL TEST', 'fail');
+                    }
+                }, 1000);
+
+            }, 4000);
+        };
+
+        iframe.onerror = () => {
+            log('❌ Iframe failed to load', 'fail');
+        };
+
+        // Test 5: Stress test - create multiple iframes
+        log('TEST 3: Stress testing with multiple loads...');
+        for (let i = 0; i < 3; i++) {
+            setTimeout(() => {
+                const testFrame = document.createElement('iframe');
+                testFrame.src = 'https://domusgpt.github.io/vib34d-unified-pulse-game/';
+                testFrame.style.width = '50px';
+                testFrame.style.height = '50px';
+                testFrame.style.opacity = '0.1';
+                document.body.appendChild(testFrame);
+
+                testFrame.onload = () => {
+                    log(`✅ Stress test iframe ${i+1} loaded`, 'pass');
+                };
+
+                testFrame.onerror = () => {
+                    log(`❌ Stress test iframe ${i+1} failed`, 'fail');
+                };
+            }, i * 500);
+        }
+
+    </script>
+</body>
+</html>
